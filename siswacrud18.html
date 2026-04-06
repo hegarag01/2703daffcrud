@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Data Siswa</title>
+
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background: #1a1a1a;
+        margin: 0;
+        padding: 30px;
+        color: #e0e0e0;
+    }
+
+    h2 {
+        text-align: center;
+        color: silver;
+    }
+
+    .container {
+        background: #2b2b2b;
+        padding: 20px;
+        border-radius: 8px;
+        max-width: 900px;
+        margin: auto;
+        border: 1px solid #555;
+    }
+
+    input {
+        padding: 8px;
+        margin: 5px 0;
+        width: 100%;
+        border: 1px solid #666;
+        background: #1f1f1f;
+        color: white;
+    }
+
+    button {
+        padding: 8px;
+        margin-top: 10px;
+        border: none;
+        cursor: pointer;
+    }
+
+    .btn-simpan {
+        background: silver;
+        color: black;
+        width: 100%;
+    }
+
+    .btn-edit {
+        background: #777;
+        color: white;
+    }
+
+    .btn-hapus {
+        background: #c0392b;
+        color: white;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 15px;
+    }
+
+    th, td {
+        border: 1px solid #555;
+        padding: 8px;
+        text-align: center;
+    }
+
+    th {
+        background: #333;
+        color: silver;
+    }
+
+    tr:nth-child(even) {
+        background: #262626;
+    }
+
+    tfoot td {
+        font-weight: bold;
+        background: #1f1f1f;
+        color: silver;
+    }
+
+    .search {
+        margin-top: 10px;
+    }
+</style>
+</head>
+
+<body>
+
+<h2>DATA SISWA</h2>
+
+<div class="container">
+
+    <input type="text" id="nama" placeholder="Nama">
+    <input type="text" id="kelas" placeholder="Kelas">
+    <input type="number" id="nilai" placeholder="Nilai (0-100)">
+
+    <button class="btn-simpan" onclick="simpan()">Simpan</button>
+
+    <div class="search">
+        <input type="text" id="cari" placeholder="Cari nama..." oninput="tampil()">
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Nama</th>
+                <th>Kelas</th>
+                <th>Nilai</th>
+                <th>Aksi</th>
+            </tr>
+        </thead>
+        <tbody id="data"></tbody>
+        <tfoot>
+            <tr>
+                <td colspan="2">Rata-rata</td>
+                <td id="rata"></td>
+                <td>-</td>
+            </tr>
+        </tfoot>
+    </table>
+
+</div>
+
+<script>
+let siswa = JSON.parse(localStorage.getItem("siswa")) || [];
+let indexEdit = null;
+
+function tampil() {
+    const tbody = document.getElementById("data");
+    const keyword = document.getElementById("cari").value.toLowerCase();
+    tbody.innerHTML = "";
+
+    let total = 0;
+    let count = 0;
+
+    siswa.forEach((s, i) => {
+        if (!s.nama.toLowerCase().includes(keyword)) return;
+
+        total += s.nilai;
+        count++;
+
+        tbody.innerHTML += `
+        <tr>
+            <td>${s.nama}</td>
+            <td>${s.kelas}</td>
+            <td>${s.nilai}</td>
+            <td>
+                <button class="btn-edit" onclick="edit(${i})">Edit</button>
+                <button class="btn-hapus" onclick="hapus(${i})">Hapus</button>
+            </td>
+        </tr>`;
+    });
+
+    document.getElementById("rata").innerText = count ? (total / count).toFixed(2) : "0";
+
+    localStorage.setItem("siswa", JSON.stringify(siswa));
+}
+
+function simpan() {
+    const nama = document.getElementById("nama").value.trim();
+    const kelas = document.getElementById("kelas").value.trim();
+    const nilai = parseFloat(document.getElementById("nilai").value);
+
+    if (!nama || !kelas || isNaN(nilai)) {
+        alert("Isi semua data!");
+        return;
+    }
+
+    if (nilai < 0 || nilai > 100) {
+        alert("Nilai harus 0-100!");
+        return;
+    }
+
+    const dataBaru = { nama, kelas, nilai };
+
+    if (indexEdit === null) {
+        siswa.push(dataBaru);
+    } else {
+        siswa[indexEdit] = dataBaru;
+        indexEdit = null;
+    }
+
+    document.getElementById("nama").value = "";
+    document.getElementById("kelas").value = "";
+    document.getElementById("nilai").value = "";
+
+    tampil();
+}
+
+function edit(i) {
+    const s = siswa[i];
+    document.getElementById("nama").value = s.nama;
+    document.getElementById("kelas").value = s.kelas;
+    document.getElementById("nilai").value = s.nilai;
+    indexEdit = i;
+}
+
+function hapus(i) {
+    if (confirm("Hapus data?")) {
+        siswa.splice(i, 1);
+        tampil();
+    }
+}
+
+tampil();
+</script>
+
+</body>
+</html>
